@@ -66,7 +66,13 @@ func normUpper(c byte) byte {
 	return 0
 }
 
+// AppendNormalize appends a normalized version of Crockford encoded bytes of src
+// onto dst and returns the resulting slice. I.e. it replaces I with 1, o with 0,
+// and removes invalid characters such as hyphens.
 func AppendNormalized(dst, src []byte) []byte {
+	if cap(dst) == 0 {
+		dst = make([]byte, 0, len(src))
+	}
 	for _, c := range src {
 		if r := normUpper(c); r != 0 {
 			dst = append(dst, r)
