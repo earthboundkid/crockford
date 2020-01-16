@@ -20,7 +20,8 @@ var (
 	Upper = base32.NewEncoding(UppercaseAlphabet).WithPadding(base32.NoPadding)
 )
 
-// Time encodes the Unix time as a 40-bit number
+// Time encodes the Unix time as a 40-bit number. The resulting slice is big endian
+// and suitable for lexicographic sorting.
 func Time(e *base32.Encoding, t time.Time) []byte {
 	ut := t.Unix()
 	var (
@@ -44,12 +45,13 @@ func mod(b []byte, m int) (rem int) {
 	return
 }
 
-func Checksum(src []byte, uppercase bool) byte {
+// Checksum returns the checksum byte for an unencoded body.
+func Checksum(body []byte, uppercase bool) byte {
 	alphabet := LowercaseChecksum
 	if uppercase {
 		alphabet = UppercaseChecksum
 	}
-	return alphabet[mod(src, 37)]
+	return alphabet[mod(body, 37)]
 }
 
 func normUpper(c byte) byte {
@@ -67,8 +69,8 @@ func normUpper(c byte) byte {
 }
 
 // AppendNormalize appends a normalized version of Crockford encoded bytes of src
-// onto dst and returns the resulting slice. I.e. it replaces I with 1, o with 0,
-// and removes invalid characters such as hyphens.
+// onto dst and returns the resulting slice. It replaces I with 1, o with 0,
+// and removes invalid characters such as hyphens. The resulting slice is uppercase.
 func AppendNormalized(dst, src []byte) []byte {
 	if cap(dst) == 0 {
 		dst = make([]byte, 0, len(src))
