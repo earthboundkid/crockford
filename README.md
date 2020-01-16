@@ -1,18 +1,5 @@
-# $NAME [![GoDoc](https://godoc.org/$PROJECT_URL?status.svg)](https://godoc.org/$PROJECT_URL) [![Go Report Card](https://goreportcard.com/badge/$PROJECT_URL)](https://goreportcard.com/report/$PROJECT_URL)
+# Crockford [![GoDoc](https://godoc.org/github.com/carlmjohnson/crockford?status.svg)](https://godoc.org/github.com/carlmjohnson/crockford) [![Go Report Card](https://goreportcard.com/badge/github.com/carlmjohnson/crockford)](https://goreportcard.com/report/github.com/carlmjohnson/crockford)
 
-$DESCRIPTION
+Crockford implements the Crockford base 32 encoding in Go.
 
-## Installation
-
-First install [Go](http://golang.org).
-
-If you just want to install the binary to your current directory and don't care about the source code, run
-
-```bash
-GOBIN="$(pwd)" GOPATH="$(mktemp -d)" go get $PROJECT_URL
-```
-
-## Screenshots
-
-```bash
-```
+See https://www.crockford.com/base32.html

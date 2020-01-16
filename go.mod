@@ -1,4 +1,4 @@
-module github.com/carlmjohnson/go-cli
+module github.com/carlmjohnson/crockford
 
 go 1.13
 
