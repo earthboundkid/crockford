@@ -21,7 +21,7 @@ var (
 )
 
 // Time encodes the Unix time as a 40-bit number
-func Time(e base32.Encoding, t time.Time) []byte {
+func Time(e *base32.Encoding, t time.Time) []byte {
 	ut := t.Unix()
 	var (
 		src [5]byte
