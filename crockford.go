@@ -4,7 +4,6 @@
 package crockford
 
 import (
-	"bytes"
 	"encoding/base32"
 	"time"
 )
@@ -53,39 +52,25 @@ func Checksum(src []byte, uppercase bool) byte {
 	return alphabet[mod(src, 37)]
 }
 
-func normUpper(r rune) rune {
-	switch r {
+func normUpper(c byte) byte {
+	switch c {
 	case '0', 'O', 'o':
 		return '0'
 	case '1', 'I', 'i':
 		return '1'
-	case '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'X', 'Y', 'Z':
-		return r
-	case 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'k', 'm', 'n', 'p', 'q', 'r', 's', 't', 'v', 'w', 'x', 'y', 'z':
-		return r + 'A' - 'a'
+	case '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'X', 'Y', 'Z', '*', '~', '$', '=', 'U':
+		return c
+	case 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'k', 'm', 'n', 'p', 'q', 'r', 's', 't', 'v', 'w', 'x', 'y', 'z', 'u':
+		return c + 'A' - 'a'
 	}
-	return -1
+	return 0
 }
 
-func Normalize(src []byte) []byte {
-	return bytes.Map(normUpper, src)
-}
-
-func normLower(r rune) rune {
-	switch r {
-	case '0', 'O', 'o':
-		return '0'
-	case '1', 'I', 'i':
-		return '1'
-	case '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'k', 'm', 'n', 'p', 'q', 'r', 's', 't', 'v', 'w', 'x', 'y', 'z':
-		return r
-	case 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'X', 'Y', 'Z':
-		return r + 'a' - 'A'
+func AppendNormalized(dst, src []byte) []byte {
+	for _, c := range src {
+		if r := normUpper(c); r != 0 {
+			dst = append(dst, r)
+		}
 	}
-	return -1
-
-}
-
-func NormalizeLower(src []byte) []byte {
-	return bytes.Map(normUpper, src)
+	return dst
 }
