@@ -109,7 +109,7 @@ func AppendMD5(e *base32.Encoding, dst, src []byte) []byte {
 	)
 	h := md5.New()
 	h.Write(src)
-	md5.Sum(buf[:0])
+	h.Sum(buf[:0])
 
 	// Ensure dst has 26 bytes capacity
 	dst = append(dst, enc[:]...)
