@@ -4,6 +4,7 @@
 package crockford
 
 import (
+	"crypto/md5"
 	"crypto/rand"
 	"encoding/base32"
 	"time"
@@ -97,5 +98,21 @@ func AppendRandom(e *base32.Encoding, dst []byte) []byte {
 	// Ensure dst has 8 bytes capacity
 	dst = append(dst, buf[:]...)
 	e.Encode(dst[len(dst)-8:], src[:])
+	return dst
+}
+
+func AppendMD5(e *base32.Encoding, dst, src []byte) []byte {
+	//16 bytes -> 26 base32 characters
+	var (
+		buf [16]byte
+		enc [26]byte
+	)
+	h := md5.New()
+	h.Write(src)
+	md5.Sum(buf[:0])
+
+	// Ensure dst has 26 bytes capacity
+	dst = append(dst, enc[:]...)
+	e.Encode(dst[len(dst)-26:], buf[:])
 	return dst
 }
