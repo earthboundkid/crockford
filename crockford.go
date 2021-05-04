@@ -1,4 +1,4 @@
-// Crockford implements the Crockford base 32 encoding
+// Package crockford implements the Crockford base 32 encoding
 //
 // See https://www.crockford.com/base32.html
 package crockford
@@ -74,7 +74,7 @@ func normUpper(c byte) byte {
 	return 0
 }
 
-// AppendNormalize appends a normalized version of Crockford encoded bytes of src
+// AppendNormalized appends a normalized version of Crockford encoded bytes of src
 // onto dst and returns the resulting slice. It replaces I with 1, o with 0,
 // and removes invalid characters such as hyphens. The resulting slice is uppercase.
 func AppendNormalized(dst, src []byte) []byte {
