@@ -3,6 +3,7 @@ package crockford_test
 import (
 	"bytes"
 	"testing"
+	"time"
 
 	"github.com/carlmjohnson/crockford"
 )
@@ -79,6 +80,81 @@ func TestAppendMD5(t *testing.T) {
 				}
 			})
 			if r.AllocsPerOp() != 0 {
+				t.Errorf("benchmark regression %q: %v", dst, r.MemString())
+			}
+		})
+	}
+}
+
+func TestAppendRandom(t *testing.T) {
+	cases := map[string]struct {
+		dst []byte
+	}{
+		"nil":  {nil},
+		"pref": {[]byte("hello ")},
+		"cap":  {make([]byte, 0, 8)},
+	}
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			dst := crockford.AppendRandom(crockford.Lower, tc.dst)
+			if !bytes.HasPrefix(dst, tc.dst) {
+				t.Fatalf("lost prefix: %q", dst)
+			}
+			if len(dst) != len(tc.dst)+8 {
+				t.Fatalf("bad length: %q", dst)
+			}
+
+			r := testing.Benchmark(func(b *testing.B) {
+				for i := 0; i < b.N; i++ {
+					dst = dst[:0]
+					dst = crockford.AppendRandom(crockford.Lower, dst)
+				}
+			})
+			if r.AllocsPerOp() > 1 {
+				t.Errorf("benchmark regression %q: %v", dst, r.MemString())
+			}
+		})
+	}
+}
+
+func TestAppendTime(t *testing.T) {
+	cases := map[string]struct {
+		want string
+	}{
+		"1970-01-01T00:00:00Z": {"00000000"},
+		"2000-01-01T12:00:00Z": {"00w6vv20"},
+		"2020-01-01T00:00:00Z": {"01f0qr80"},
+		"2038-01-19T03:14:07Z": {"01zzzzzz"},
+		"2100-01-01T00:00:00Z": {"03t8cnr0"},
+	}
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			eq := EqBytes(t)
+			when, err := time.Parse("2006-01-02T15:04:05Z", name)
+			if err != nil {
+				t.Fatal(err)
+			}
+			dst := crockford.AppendTime(crockford.Lower, when, nil)
+			eq(tc.want, dst)
+			dst = []byte("abc")
+			dst = crockford.AppendTime(crockford.Lower, when, dst)
+			if !bytes.HasPrefix(dst, []byte("abc")) {
+				t.Fatalf("lost prefix %q", dst)
+			}
+			dst = []byte("12345678--")[:0]
+			dst = crockford.AppendTime(crockford.Lower, when, dst)
+			dst = dst[:cap(dst)]
+			if !bytes.HasSuffix(dst, []byte("--")) {
+				t.Fatalf("lost suffix %q", dst)
+			}
+
+			r := testing.Benchmark(func(b *testing.B) {
+				for i := 0; i < b.N; i++ {
+					dst = dst[:0]
+					dst = crockford.AppendTime(crockford.Lower, when, nil)
+				}
+			})
+			if r.AllocsPerOp() > 1 {
 				t.Errorf("benchmark regression %q: %v", dst, r.MemString())
 			}
 		})
