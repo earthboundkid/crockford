@@ -118,7 +118,7 @@ func TestAppendRandom(t *testing.T) {
 			if !bytes.HasPrefix(dst, tc.dst) {
 				t.Fatalf("lost prefix: %q", dst)
 			}
-			if len(dst) != len(tc.dst)+8 {
+			if len(dst) != len(tc.dst)+crockford.LenRandom {
 				t.Fatalf("bad length: %q", dst)
 			}
 
