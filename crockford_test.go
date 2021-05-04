@@ -49,6 +49,24 @@ func TestEnsure(t *testing.T) {
 	}
 }
 
+func TestMD5(t *testing.T) {
+	cases := map[string]struct {
+		in   string
+		want string
+	}{
+		"none":  {"", "tgerspcf02s09tc016cesy22fr"},
+		"hello": {"Hello, World!", "cpme4zc8f4m3gcdpcjyrpzratg"},
+	}
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			got := crockford.MD5(crockford.Lower, []byte(tc.in))
+			if got != tc.want {
+				t.Fatalf("want %q; got %q", tc.want, got)
+			}
+		})
+	}
+}
+
 func TestAppendMD5(t *testing.T) {
 	cases := map[string]struct {
 		in   string
@@ -112,6 +130,30 @@ func TestAppendRandom(t *testing.T) {
 			})
 			if r.AllocsPerOp() > 1 {
 				t.Errorf("benchmark regression %q: %v", dst, r.MemString())
+			}
+		})
+	}
+}
+
+func TestTime(t *testing.T) {
+	cases := map[string]struct {
+		want string
+	}{
+		"1970-01-01T00:00:00Z": {"00000000"},
+		"2000-01-01T12:00:00Z": {"00w6vv20"},
+		"2020-01-01T00:00:00Z": {"01f0qr80"},
+		"2038-01-19T03:14:07Z": {"01zzzzzz"},
+		"2100-01-01T00:00:00Z": {"03t8cnr0"},
+	}
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			when, err := time.Parse("2006-01-02T15:04:05Z", name)
+			if err != nil {
+				t.Fatal(err)
+			}
+			got := crockford.Time(crockford.Lower, when)
+			if got != tc.want {
+				t.Fatalf("want %q; got %q", tc.want, got)
 			}
 		})
 	}
