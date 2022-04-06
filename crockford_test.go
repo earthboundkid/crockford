@@ -118,10 +118,15 @@ func TestAppendRandom(t *testing.T) {
 			if len(dst) != len(tc.dst)+crockford.LenRandom {
 				t.Fatalf("bad length: %q", dst)
 			}
+			before := string(dst)
+			after := string(crockford.AppendRandom(crockford.Lower, tc.dst))
+			if before == after {
+				t.Fatalf("results not random: %q == %q", before, after)
+			}
 			allocs := testing.AllocsPerRun(100, func() {
 				dst = crockford.AppendRandom(crockford.Lower, dst[:0])
 			})
-			if allocs > 1 {
+			if allocs > 0 {
 				t.Errorf("too many allocs %q: %f", dst, allocs)
 			}
 		})
