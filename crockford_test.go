@@ -91,14 +91,11 @@ func TestAppendMD5(t *testing.T) {
 			dst = crockford.AppendMD5(crockford.Lower, dst, in)
 			eq("*"+tc.want, dst)
 
-			r := testing.Benchmark(func(b *testing.B) {
-				for i := 0; i < b.N; i++ {
-					dst = dst[:0]
-					dst = crockford.AppendMD5(crockford.Lower, dst, in)
-				}
+			allocs := testing.AllocsPerRun(100, func() {
+				dst = crockford.AppendMD5(crockford.Lower, dst[:0], in)
 			})
-			if r.AllocsPerOp() != 0 {
-				t.Errorf("benchmark regression %q: %v", dst, r.MemString())
+			if allocs > 0 {
+				t.Errorf("too many allocs %q: %f", dst, allocs)
 			}
 		})
 	}
@@ -121,15 +118,11 @@ func TestAppendRandom(t *testing.T) {
 			if len(dst) != len(tc.dst)+crockford.LenRandom {
 				t.Fatalf("bad length: %q", dst)
 			}
-
-			r := testing.Benchmark(func(b *testing.B) {
-				for i := 0; i < b.N; i++ {
-					dst = dst[:0]
-					dst = crockford.AppendRandom(crockford.Lower, dst)
-				}
+			allocs := testing.AllocsPerRun(100, func() {
+				dst = crockford.AppendRandom(crockford.Lower, dst[:0])
 			})
-			if r.AllocsPerOp() > 1 {
-				t.Errorf("benchmark regression %q: %v", dst, r.MemString())
+			if allocs > 1 {
+				t.Errorf("too many allocs %q: %f", dst, allocs)
 			}
 		})
 	}
@@ -189,15 +182,11 @@ func TestAppendTime(t *testing.T) {
 			if !bytes.HasSuffix(dst, []byte("--")) {
 				t.Fatalf("lost suffix %q", dst)
 			}
-
-			r := testing.Benchmark(func(b *testing.B) {
-				for i := 0; i < b.N; i++ {
-					dst = dst[:0]
-					dst = crockford.AppendTime(crockford.Lower, when, nil)
-				}
+			allocs := testing.AllocsPerRun(100, func() {
+				dst = crockford.AppendTime(crockford.Lower, when, dst[:0])
 			})
-			if r.AllocsPerOp() > 1 {
-				t.Errorf("benchmark regression %q: %v", dst, r.MemString())
+			if allocs > 0 {
+				t.Errorf("too many allocs %q: %f", dst, allocs)
 			}
 		})
 	}
