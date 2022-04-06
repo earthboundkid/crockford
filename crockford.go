@@ -47,9 +47,10 @@ func AppendTime(e *base32.Encoding, t time.Time, dst []byte) []byte {
 	src[2] = byte(ut >> 16)
 	src[3] = byte(ut >> 8)
 	src[4] = byte(ut)
-	ret, tar := ensure(LenTime, dst)
+	dst = grow(dst, LenTime)
+	tar := dst[len(dst) : len(dst)+LenTime]
 	e.Encode(tar, src[:])
-	return ret
+	return dst[:len(dst)+LenTime]
 }
 
 // mod calculates the big endian modulus of the byte string
@@ -94,9 +95,7 @@ func Normalized(s string) string {
 // onto dst and returns the resulting slice. It replaces I with 1, o with 0,
 // and removes invalid characters such as hyphens. The resulting slice is uppercase.
 func AppendNormalized(dst, src []byte) []byte {
-	if cap(dst) == 0 {
-		dst = make([]byte, 0, len(src))
-	}
+	dst = grow(dst, len(src))
 	for _, c := range src {
 		if r := normUpper(c); r != 0 {
 			dst = append(dst, r)
@@ -137,22 +136,10 @@ func AppendMD5(e *base32.Encoding, dst, src []byte) []byte {
 	h.Write(src)
 	h.Sum(buf[:0])
 
-	// Ensure dst has 26 bytes capacity
-	ret, tar := ensure(LenMD5, dst)
+	dst = grow(dst, LenMD5)
+	tar := dst[len(dst) : len(dst)+LenMD5]
 	e.Encode(tar, buf[:])
-	return ret
-}
-
-func ensure(size int, b []byte) (ret, tar []byte) {
-	ret = b
-	newLen := len(b) + size
-	if cap(b) >= newLen {
-		ret = b[:newLen]
-	} else {
-		ret = append(b, make([]byte, size)...)
-	}
-	tar = ret[len(b):newLen]
-	return
+	return dst[:len(dst)+LenMD5]
 }
 
 func grow(b []byte, n int) []byte {

@@ -17,38 +17,6 @@ func EqBytes(t *testing.T) func(want string, got []byte) {
 	}
 }
 
-func TestEnsure(t *testing.T) {
-	cases := map[string]struct {
-		size int
-		b    []byte
-	}{
-		"0-nil":    {0, nil},
-		"4-nil":    {4, nil},
-		"0-sliced": {4, []byte("1234")[:0]},
-		"2-sliced": {2, []byte("1234")[:2]},
-		"overflow": {2, []byte("1234")},
-	}
-	for name, tc := range cases {
-		t.Run(name, func(t *testing.T) {
-			ret, tar := crockford.Ensure(tc.size, tc.b)
-			if len(tar) != tc.size {
-				t.Fatalf("bad target: %q", tar)
-			}
-			if len(ret) != len(tc.b)+tc.size {
-				t.Fatalf("bad return: %q", ret)
-			}
-			if cap(tc.b)-len(tc.b) >= tc.size {
-				if bytes.ContainsAny(tar, "\x00") {
-					t.Fatalf("overwrote existing cap: %q", ret)
-				}
-			}
-			if !bytes.HasPrefix(ret, tc.b) {
-				t.Fatalf("lost prefix: %q", ret)
-			}
-		})
-	}
-}
-
 func TestMD5(t *testing.T) {
 	cases := map[string]struct {
 		in   string
