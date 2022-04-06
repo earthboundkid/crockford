@@ -1,21 +1,12 @@
 package crockford_test
 
 import (
-	"bytes"
 	"testing"
 	"time"
 
+	"github.com/carlmjohnson/be"
 	"github.com/carlmjohnson/crockford"
 )
-
-func EqBytes(t *testing.T) func(want string, got []byte) {
-	return func(want string, got []byte) {
-		t.Helper()
-		if want != string(got) {
-			t.Fatalf("want %q; got %q", want, got)
-		}
-	}
-}
 
 func TestMD5(t *testing.T) {
 	cases := map[string]struct {
@@ -28,9 +19,7 @@ func TestMD5(t *testing.T) {
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
 			got := crockford.MD5(crockford.Lower, []byte(tc.in))
-			if got != tc.want {
-				t.Fatalf("want %q; got %q", tc.want, got)
-			}
+			be.Equal(t, tc.want, got)
 		})
 	}
 }
@@ -45,19 +34,18 @@ func TestAppendMD5(t *testing.T) {
 	}
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
-			eq := EqBytes(t)
 			in := []byte(tc.in)
 			// plain
 			dst := crockford.AppendMD5(crockford.Lower, nil, in)
-			eq(tc.want, dst)
+			be.Equal(t, tc.want, string(dst))
 			// reusing buffer
 			dst = crockford.AppendMD5(crockford.Lower, dst[:0], in)
-			eq(tc.want, dst)
+			be.Equal(t, tc.want, string(dst))
 			// appending to buffer
 			dst[0] = '*'
 			dst = dst[:1]
 			dst = crockford.AppendMD5(crockford.Lower, dst, in)
-			eq("*"+tc.want, dst)
+			be.Equal(t, "*"+tc.want, string(dst))
 
 			allocs := testing.AllocsPerRun(100, func() {
 				dst = crockford.AppendMD5(crockford.Lower, dst[:0], in)
@@ -80,17 +68,13 @@ func TestAppendRandom(t *testing.T) {
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
 			dst := crockford.AppendRandom(crockford.Lower, tc.dst)
-			if !bytes.HasPrefix(dst, tc.dst) {
-				t.Fatalf("lost prefix: %q", dst)
-			}
-			if len(dst) != len(tc.dst)+crockford.LenRandom {
-				t.Fatalf("bad length: %q", dst)
-			}
+			be.AllEqual(t, tc.dst, dst[:len(tc.dst)])
+			be.Equal(t, len(tc.dst)+crockford.LenRandom, len(dst))
+
 			before := string(dst)
 			after := string(crockford.AppendRandom(crockford.Lower, tc.dst))
-			if before == after {
-				t.Fatalf("results not random: %q == %q", before, after)
-			}
+			be.Unequal(t, before, after)
+
 			allocs := testing.AllocsPerRun(100, func() {
 				dst = crockford.AppendRandom(crockford.Lower, dst[:0])
 			})
@@ -114,13 +98,9 @@ func TestTime(t *testing.T) {
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
 			when, err := time.Parse("2006-01-02T15:04:05Z", name)
-			if err != nil {
-				t.Fatal(err)
-			}
+			be.NilErr(t, err)
 			got := crockford.Time(crockford.Lower, when)
-			if got != tc.want {
-				t.Fatalf("want %q; got %q", tc.want, got)
-			}
+			be.Equal(t, tc.want, got)
 		})
 	}
 }
@@ -137,24 +117,21 @@ func TestAppendTime(t *testing.T) {
 	}
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
-			eq := EqBytes(t)
 			when, err := time.Parse("2006-01-02T15:04:05Z", name)
-			if err != nil {
-				t.Fatal(err)
-			}
+			be.NilErr(t, err)
+
 			dst := crockford.AppendTime(crockford.Lower, when, nil)
-			eq(tc.want, dst)
+			be.Equal(t, tc.want, string(dst))
+			// keep prefixes
 			dst = []byte("abc")
 			dst = crockford.AppendTime(crockford.Lower, when, dst)
-			if !bytes.HasPrefix(dst, []byte("abc")) {
-				t.Fatalf("lost prefix %q", dst)
-			}
+			be.Equal(t, "abc"+tc.want, string(dst))
+			// reuse cap
 			dst = []byte("12345678--")[:0]
 			dst = crockford.AppendTime(crockford.Lower, when, dst)
 			dst = dst[:cap(dst)]
-			if !bytes.HasSuffix(dst, []byte("--")) {
-				t.Fatalf("lost suffix %q", dst)
-			}
+			be.Equal(t, tc.want+"--", string(dst))
+
 			allocs := testing.AllocsPerRun(100, func() {
 				dst = crockford.AppendTime(crockford.Lower, when, dst[:0])
 			})
