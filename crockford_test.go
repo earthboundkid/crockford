@@ -50,9 +50,7 @@ func TestAppendMD5(t *testing.T) {
 			allocs := testing.AllocsPerRun(100, func() {
 				dst = crockford.AppendMD5(crockford.Lower, dst[:0], in)
 			})
-			if allocs > 0 {
-				t.Errorf("too many allocs %q: %f", dst, allocs)
-			}
+			be.Zero(t, allocs)
 		})
 	}
 }
@@ -78,9 +76,7 @@ func TestAppendRandom(t *testing.T) {
 			allocs := testing.AllocsPerRun(100, func() {
 				dst = crockford.AppendRandom(crockford.Lower, dst[:0])
 			})
-			if allocs > 0 {
-				t.Errorf("too many allocs %q: %f", dst, allocs)
-			}
+			be.Zero(t, allocs)
 		})
 	}
 }
@@ -135,9 +131,7 @@ func TestAppendTime(t *testing.T) {
 			allocs := testing.AllocsPerRun(100, func() {
 				dst = crockford.AppendTime(crockford.Lower, when, dst[:0])
 			})
-			if allocs > 0 {
-				t.Errorf("too many allocs %q: %f", dst, allocs)
-			}
+			be.Zero(t, allocs)
 		})
 	}
 }
