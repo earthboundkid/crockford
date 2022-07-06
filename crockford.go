@@ -135,6 +135,8 @@ func AppendMD5(e *base32.Encoding, dst, src []byte) []byte {
 }
 
 // Append returns a slice with the encoded version of src appended onto dst.
+//
+// See https://github.com/golang/go/issues/53693.
 func Append(e *base32.Encoding, dst, src []byte) []byte {
 	n := e.EncodedLen(len(src))
 	return appendN(e, n, dst, src)
