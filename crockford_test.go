@@ -161,11 +161,11 @@ func TestAppend(t *testing.T) {
 }
 
 func ExamplePartition() {
-	t := time.Date(2009, 11, 10, 0, 0, 0, 0, time.UTC)
+	t := time.Date(1969, 7, 24, 16, 50, 35, 0, time.UTC)
 	s := crockford.Time(crockford.Lower, t)
 	fmt.Println(crockford.Partition(s, 4))
 	// Output:
-	// 015f-hb80
+	// zzzj-satv
 }
 
 func TestPartition(t *testing.T) {
