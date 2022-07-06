@@ -153,3 +153,53 @@ func grow(b []byte, n int) []byte {
 	}
 	return append(b, make([]byte, n)...)[:len(b)]
 }
+
+// Partition s with hyphens ("-") to every gap bytes to increase readability.
+// Partition is not Unicode aware because it is made to work with encoded strings.
+func Partition(s string, gap int) string {
+	return string(AppendPartition(nil, []byte(s), gap))
+}
+
+// AppendPartition partitions src with hyphens ("-") every gap bytes and appends result on dst.
+func AppendPartition(dst, src []byte, gap int) []byte {
+	if gap < 1 {
+		panic("invalid gap")
+	}
+	if len(src) < 1 {
+		return dst
+	}
+	gaps := len(src) / gap
+	rem := len(src) % gap
+	if rem == 0 && gaps > 0 {
+		gaps--
+	}
+	n := gaps + len(src)
+	dst = grow(dst, n)
+	r := dst[:len(dst)+n]
+	dst = r
+	var tailDst, tailSrc []byte
+	first := true
+	for {
+		chunkSize := gap
+		if first && rem != 0 {
+			chunkSize = rem
+		}
+		first = false
+		src, tailSrc = splitLast(src, chunkSize)
+		dst, tailDst = splitLast(dst, chunkSize)
+		copy(tailDst, tailSrc)
+		gaps--
+		if gaps >= 0 {
+			dst, tailDst = splitLast(dst, 1)
+			tailDst[0] = '-'
+		} else {
+			break
+		}
+	}
+
+	return r
+}
+
+func splitLast(b []byte, n int) ([]byte, []byte) {
+	return b[:len(b)-n], b[len(b)-n:]
+}

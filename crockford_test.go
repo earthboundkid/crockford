@@ -1,6 +1,8 @@
 package crockford_test
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -156,4 +158,63 @@ func TestAppend(t *testing.T) {
 		})
 		be.Zero(t, allocs)
 	}
+}
+
+func ExamplePartition() {
+	t := time.Date(2009, 11, 10, 0, 0, 0, 0, time.UTC)
+	s := crockford.Time(crockford.Lower, t)
+	fmt.Println(crockford.Partition(s, 4))
+	// Output:
+	// 015f-hb80
+}
+
+func TestPartition(t *testing.T) {
+	for _, tc := range []struct {
+		gap     int
+		in, out string
+	}{
+		{1, "", ""},
+		{1, "1", "1"},
+		{1, "11", "1-1"},
+		{2, "1", "1"},
+		{2, "12", "12"},
+		{2, "121", "12-1"},
+		{2, "1212", "12-12"},
+		{2, "12121", "12-12-1"},
+		{3, "1231", "123-1"},
+		{4, "12341234", "1234-1234"},
+	} {
+		got := crockford.Partition(tc.in, tc.gap)
+		be.Equal(t, tc.out, got)
+		src := []byte(tc.in)
+		b := make([]byte, len(tc.out))
+		allocs := testing.AllocsPerRun(100, func() {
+			b = b[:0]
+			b = crockford.AppendPartition(b, src, tc.gap)
+		})
+		be.Zero(t, allocs)
+		be.Equal(t, tc.out, string(b))
+	}
+}
+
+func FuzzPartition(f *testing.F) {
+	f.Add(1, "")
+	f.Add(1, "12")
+	f.Add(2, "12")
+	f.Add(2, "1234")
+	f.Fuzz(func(t *testing.T, gap int, test string) {
+		if gap < 1 {
+			t.SkipNow()
+		}
+
+		s := crockford.Partition(test, gap)
+		gaps := len(test) / gap
+		if rem := len(test) % gap; rem == 0 && gaps > 0 {
+			gaps--
+		}
+		be.Equal(t, len(test)+gaps, len(s))
+		precount := strings.Count(test, "-")
+		postcount := strings.Count(s, "-")
+		be.Equal(t, gaps+precount, postcount)
+	})
 }
