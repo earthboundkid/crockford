@@ -135,3 +135,25 @@ func TestAppendTime(t *testing.T) {
 		})
 	}
 }
+
+func TestAppend(t *testing.T) {
+	for _, tc := range []struct{ in, out string }{
+		{"", ""},
+		{"\x00", "00"},
+		{"\xff\xff\xff\xff\xff", "zzzzzzzz"},
+		{"hello world", "d1jprv3f41vpywkccg"},
+	} {
+		var b []byte
+		b = crockford.Append(crockford.Lower, b, []byte(tc.in))
+		be.Equal(t, tc.out, string(b))
+		b = append(b, '+')
+		b = crockford.Append(crockford.Lower, b, []byte(tc.in))
+		be.Equal(t, tc.out+"+"+tc.out, string(b))
+		src := []byte(tc.in)
+		allocs := testing.AllocsPerRun(100, func() {
+			b = b[:0]
+			b = crockford.Append(crockford.Lower, b, src)
+		})
+		be.Zero(t, allocs)
+	}
+}
