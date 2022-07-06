@@ -143,7 +143,7 @@ func AppendMD5(e *base32.Encoding, dst, src []byte) []byte {
 }
 
 func grow(b []byte, n int) []byte {
-	if cap(b)-len(b) > n {
+	if cap(b)-len(b) >= n {
 		return b
 	}
 	return append(b, make([]byte, n)...)[:len(b)]
