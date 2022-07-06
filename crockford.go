@@ -162,7 +162,8 @@ func Partition(s string, gap int) string {
 	return string(AppendPartition(nil, []byte(s), gap))
 }
 
-// AppendPartition partitions src with hyphens ("-") every gap bytes and appends result on dst.
+// AppendPartition appends onto dst the result of
+// partitioning src with hyphens ("-") every gap bytes.
 func AppendPartition(dst, src []byte, gap int) []byte {
 	if gap < 1 {
 		panic("invalid gap")
@@ -170,36 +171,38 @@ func AppendPartition(dst, src []byte, gap int) []byte {
 	if len(src) < 1 {
 		return dst
 	}
+	// figure out how many hyphens to insert
 	gaps := len(src) / gap
 	rem := len(src) % gap
 	if rem == 0 && gaps > 0 {
 		gaps--
 	}
+	// reserve space
 	n := gaps + len(src)
-	dst = grow(dst, n)
-	r := dst[:len(dst)+n]
-	dst = r
-	var tailDst, tailSrc []byte
-	first := true
-	for {
-		chunkSize := gap
-		if first && rem != 0 {
-			chunkSize = rem
-		}
-		first = false
-		src, tailSrc = splitLast(src, chunkSize)
-		dst, tailDst = splitLast(dst, chunkSize)
-		copy(tailDst, tailSrc)
-		gaps--
-		if gaps >= 0 {
-			dst, tailDst = splitLast(dst, 1)
-			tailDst[0] = '-'
-		} else {
-			break
-		}
-	}
+	dst = grow(dst, n)[:len(dst)+n]
+	r := dst
 
-	return r
+	// copy chunks from tail to beginning of dst
+	// inserting hyphens along the way
+	for {
+		var tailDst, tailSrc []byte
+		tailLen := gap
+		if rem != 0 {
+			tailLen = rem
+			rem = 0
+		}
+
+		src, tailSrc = splitLast(src, tailLen)
+		dst, tailDst = splitLast(dst, tailLen)
+		copy(tailDst, tailSrc)
+
+		if gaps < 1 {
+			return r
+		}
+		dst, tailDst = splitLast(dst, 1)
+		tailDst[0] = '-'
+		gaps--
+	}
 }
 
 func splitLast(b []byte, n int) ([]byte, []byte) {
