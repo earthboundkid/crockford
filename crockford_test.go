@@ -2,6 +2,7 @@ package crockford_test
 
 import (
 	"fmt"
+	"math"
 	"strings"
 	"testing"
 	"time"
@@ -186,6 +187,8 @@ func TestPartition(t *testing.T) {
 	} {
 		got := crockford.Partition(tc.in, tc.gap)
 		be.Equal(t, tc.out, got)
+		be.Equal(t, simplePartition(tc.in, tc.gap), got)
+
 		src := []byte(tc.in)
 		b := make([]byte, len(tc.out))
 		allocs := testing.AllocsPerRun(100, func() {
@@ -208,6 +211,7 @@ func FuzzPartition(f *testing.F) {
 		}
 
 		s := crockford.Partition(test, gap)
+		be.Equal(t, simplePartition(test, gap), s)
 		gaps := len(test) / gap
 		if rem := len(test) % gap; rem == 0 && gaps > 0 {
 			gaps--
@@ -217,4 +221,21 @@ func FuzzPartition(f *testing.F) {
 		postcount := strings.Count(s, "-")
 		be.Equal(t, gaps+precount, postcount)
 	})
+}
+
+// Same output as partition but it allocates more
+func simplePartition(src string, gap int) string {
+	return strings.Join(chunk(src, gap), "-")
+}
+
+func chunk(s string, size int) []string {
+	if len(s) == 0 {
+		return nil
+	}
+	n := int(math.Ceil(float64(len(s)) / float64(size)))
+	res := make([]string, 0, n)
+	for i := 0; i < n-1; i++ {
+		res = append(res, s[i*size:(i+1)*size])
+	}
+	return append(res, s[(n-1)*size:])
 }
