@@ -239,3 +239,21 @@ func chunk(s string, size int) []string {
 	}
 	return append(res, s[(n-1)*size:])
 }
+
+func TestNormalized(t *testing.T) {
+	for _, tc := range []struct {
+		in, out string
+	}{
+		{"", ""},
+		{"a", "A"},
+		{"1IiLl", "11111"},
+		{"0Oo", "000"},
+		{"-", ""},
+		{"AB-C", "ABC"},
+		{"AB-C--DEF", "ABCDEF"},
+		{"0123456789abcdefghjkmnpqrstvwxyz*~$=u", "0123456789ABCDEFGHJKMNPQRSTVWXYZ*~$=U"},
+	} {
+		got := crockford.Normalized(tc.in)
+		be.Equal(t, tc.out, got)
+	}
+}

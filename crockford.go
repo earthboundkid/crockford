@@ -71,7 +71,7 @@ func normUpper(c byte) byte {
 	switch c {
 	case '0', 'O', 'o':
 		return '0'
-	case '1', 'I', 'i':
+	case '1', 'I', 'i', 'L', 'l':
 		return '1'
 	case '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'X', 'Y', 'Z', '*', '~', '$', '=', 'U':
 		return c
@@ -82,14 +82,14 @@ func normUpper(c byte) byte {
 }
 
 // Normalized returns a normalized version of Crockford encoded bytes of src
-// onto dst and returns the resulting slice. It replaces I with 1, o with 0,
+// onto dst and returns the resulting slice. It replaces I and L with 1, o with 0,
 // and removes invalid characters such as hyphens. The resulting slice is uppercase.
 func Normalized(s string) string {
 	return string(AppendNormalized(nil, []byte(s)))
 }
 
 // AppendNormalized appends a normalized version of Crockford encoded bytes of src
-// onto dst and returns the resulting slice. It replaces I with 1, o with 0,
+// onto dst and returns the resulting slice. It replaces I and L with 1, o with 0,
 // and removes invalid characters such as hyphens. The resulting slice is uppercase.
 func AppendNormalized(dst, src []byte) []byte {
 	dst = grow(dst, len(src))
