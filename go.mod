@@ -1,5 +1,5 @@
-module github.com/carlmjohnson/crockford
+module github.com/earthboundkid/crockford/v2
 
-go 1.18
+go 1.23
 
-require github.com/carlmjohnson/be v0.22.4
+require github.com/carlmjohnson/be v0.25.2
