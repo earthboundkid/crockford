@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/carlmjohnson/be"
-	"github.com/carlmjohnson/crockford"
+	"github.com/earthboundkid/crockford/v2"
 )
 
 func TestMD5(t *testing.T) {
@@ -139,28 +139,6 @@ func TestAppendTime(t *testing.T) {
 	}
 }
 
-func TestAppend(t *testing.T) {
-	for _, tc := range []struct{ in, out string }{
-		{"", ""},
-		{"\x00", "00"},
-		{"\xff\xff\xff\xff\xff", "zzzzzzzz"},
-		{"hello world", "d1jprv3f41vpywkccg"},
-	} {
-		var b []byte
-		b = crockford.Append(crockford.Lower, b, []byte(tc.in))
-		be.Equal(t, tc.out, string(b))
-		b = append(b, '+')
-		b = crockford.Append(crockford.Lower, b, []byte(tc.in))
-		be.Equal(t, tc.out+"+"+tc.out, string(b))
-		src := []byte(tc.in)
-		allocs := testing.AllocsPerRun(100, func() {
-			b = b[:0]
-			b = crockford.Append(crockford.Lower, b, src)
-		})
-		be.Zero(t, allocs)
-	}
-}
-
 func ExamplePartition() {
 	t := time.Date(1969, 7, 24, 16, 50, 35, 0, time.UTC)
 	s := crockford.Time(crockford.Lower, t)
@@ -256,4 +234,12 @@ func TestNormalized(t *testing.T) {
 		got := crockford.Normalized(tc.in)
 		be.Equal(t, tc.out, got)
 	}
+}
+
+func TestRandom(t *testing.T) {
+	// Reasonably unlikely in a test lol
+	a, b := crockford.Random(crockford.Lower), crockford.Random(crockford.Lower)
+	be.Unequal(t, a, b)
+	be.EqualLength(t, crockford.LenRandom, a)
+	be.EqualLength(t, crockford.LenRandom, b)
 }
