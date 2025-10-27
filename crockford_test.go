@@ -162,19 +162,22 @@ func TestPartition(t *testing.T) {
 		{2, "12121", "12-12-1"},
 		{3, "1231", "123-1"},
 		{4, "12341234", "1234-1234"},
+		{4, "tgerspcf02s09tc0", "tger-spcf-02s0-9tc0"},
+		{4, "cpme4zc8f4m3gcdp", "cpme-4zc8-f4m3-gcdp"},
 	} {
 		got := crockford.Partition(tc.in, tc.gap)
 		be.Equal(t, tc.out, got)
 		be.Equal(t, simplePartition(tc.in, tc.gap), got)
 
 		src := []byte(tc.in)
-		b := make([]byte, len(tc.out))
+		b := make([]byte, len(tc.out)+1)
+		b[0] = 'x'
 		allocs := testing.AllocsPerRun(100, func() {
-			b = b[:0]
+			b = b[:1]
 			b = crockford.AppendPartition(b, src, tc.gap)
 		})
 		be.Zero(t, allocs)
-		be.Equal(t, tc.out, string(b))
+		be.Equal(t, "x"+tc.out, string(b))
 	}
 }
 

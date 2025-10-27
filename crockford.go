@@ -139,8 +139,7 @@ func AppendPartition(dst, src []byte, gap int) []byte {
 	}
 	// reserve space
 	n := gaps + len(src)
-	dst = slices.Grow(dst, n)
-	r := dst[:0]
+	r := slices.Grow(dst, n)
 
 	// copy bytes inserting hyphens along the way
 	sinceHyphen := 0
