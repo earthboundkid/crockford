@@ -165,19 +165,32 @@ func TestPartition(t *testing.T) {
 		{4, "tgerspcf02s09tc0", "tger-spcf-02s0-9tc0"},
 		{4, "cpme4zc8f4m3gcdp", "cpme-4zc8-f4m3-gcdp"},
 	} {
-		got := crockford.Partition(tc.in, tc.gap)
-		be.Equal(t, tc.out, got)
-		be.Equal(t, simplePartition(tc.in, tc.gap), got)
-
-		src := []byte(tc.in)
-		b := make([]byte, len(tc.out)+1)
-		b[0] = 'x'
-		allocs := testing.AllocsPerRun(100, func() {
-			b = b[:1]
-			b = crockford.AppendPartition(b, src, tc.gap)
-		})
-		be.Zero(t, allocs)
-		be.Equal(t, "x"+tc.out, string(b))
+		t := be.Relaxed(t)
+		{
+			// Basic test
+			got := crockford.Partition(tc.in, tc.gap)
+			be.Equal(t, tc.out, got)
+			be.Equal(t, simplePartition(tc.in, tc.gap), got)
+		}
+		{
+			// Test reusing buffer
+			src := make([]byte, 0, len(tc.out))
+			src = append(src, tc.in...)
+			b := crockford.AppendPartition(src[:0], src, tc.gap)
+			be.Equal(t, tc.out, string(b))
+		}
+		{
+			// Test allocations and preserving material before append
+			src := []byte(tc.in)
+			b := make([]byte, len(tc.out)+1)
+			b[0] = 'x'
+			allocs := testing.AllocsPerRun(100, func() {
+				b = b[:1]
+				b = crockford.AppendPartition(b, src, tc.gap)
+			})
+			be.Zero(t, allocs)
+			be.Equal(t, "x"+tc.out, string(b))
+		}
 	}
 }
 
