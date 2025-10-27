@@ -139,17 +139,32 @@ func AppendPartition(dst, src []byte, gap int) []byte {
 	}
 	// reserve space
 	n := gaps + len(src)
-	r := slices.Grow(dst, n)
+	dst = slices.Grow(dst, n)[:len(dst)+n]
+	r := dst
 
-	// copy bytes inserting hyphens along the way
-	sinceHyphen := 0
-	for _, c := range src {
-		if sinceHyphen == gap {
-			r = append(r, '-')
-			sinceHyphen = 0
+	// copy chunks from tail to beginning of dst
+	// inserting hyphens along the way
+	for {
+		var tailDst, tailSrc []byte
+		tailLen := gap
+		if rem != 0 {
+			tailLen = rem
+			rem = 0
 		}
-		r = append(r, c)
-		sinceHyphen++
+
+		src, tailSrc = splitLast(src, tailLen)
+		dst, tailDst = splitLast(dst, tailLen)
+		copy(tailDst, tailSrc)
+
+		if gaps < 1 {
+			return r
+		}
+		dst, tailDst = splitLast(dst, 1)
+		tailDst[0] = '-'
+		gaps--
 	}
-	return r
+}
+
+func splitLast(b []byte, n int) ([]byte, []byte) {
+	return b[:len(b)-n], b[len(b)-n:]
 }
