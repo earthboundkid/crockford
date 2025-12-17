@@ -7,6 +7,7 @@ import (
 	"crypto/md5"
 	"crypto/rand"
 	"encoding/base32"
+	"math"
 	"slices"
 	"time"
 )
@@ -128,41 +129,24 @@ func AppendPartition(dst, src []byte, gap int) []byte {
 	if gap < 1 {
 		panic("invalid gap")
 	}
-	if len(src) < 1 {
-		return dst
-	}
 	// figure out how many hyphens to insert
-	gaps := len(src) / gap
-	rem := len(src) % gap
-	if rem == 0 && gaps > 0 {
-		gaps--
+	gaps := int(math.Ceil(float64(len(src))/float64(gap))) - 1
+	if gaps < 1 {
+		return append(dst, src...)
 	}
 	// reserve space
 	n := gaps + len(src)
 	dst = slices.Grow(dst, n)[:len(dst)+n]
-	r := dst
-
-	// copy chunks from tail to beginning of dst
-	// inserting hyphens along the way
-	for {
-		var tailDst, tailSrc []byte
-		tailLen := gap
-		if rem != 0 {
-			tailLen = rem
-			rem = 0
+	j := len(dst)
+	for i, c := range slices.Backward(src) {
+		j--
+		dst[j] = c
+		if i > 0 && i%gap == 0 {
+			j--
+			dst[j] = '-'
 		}
-
-		src, tailSrc = splitLast(src, tailLen)
-		dst, tailDst = splitLast(dst, tailLen)
-		copy(tailDst, tailSrc)
-
-		if gaps < 1 {
-			return r
-		}
-		dst, tailDst = splitLast(dst, 1)
-		tailDst[0] = '-'
-		gaps--
 	}
+	return dst
 }
 
 func splitLast(b []byte, n int) ([]byte, []byte) {
