@@ -179,6 +179,9 @@ func TestPartition(t *testing.T) {
 				be.Equal("x"+tc.out, string(b))
 			})
 	}
+	assert.FailsNow(t).Panicked(func() {
+		crockford.Partition("1", -1)
+	})
 }
 
 func FuzzPartition(f *testing.F) {

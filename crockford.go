@@ -5,7 +5,7 @@ package crockford
 
 import (
 	"crypto/md5"
-	"crypto/rand"
+	crand "crypto/rand"
 	"encoding/base32"
 	"math"
 	"slices"
@@ -95,9 +95,7 @@ func AppendRandom(e *base32.Encoding, dst []byte) []byte {
 	dst = slices.Grow(dst, LenRandom)
 	// Use the tail of dst as scratch
 	src := dst[len(dst) : len(dst)+5]
-	if _, err := rand.Read(src); err != nil {
-		panic(err)
-	}
+	crand.Read(src) // Can't fail
 	return e.AppendEncode(dst, src)
 }
 
@@ -147,8 +145,4 @@ func AppendPartition(dst, src []byte, gap int) []byte {
 		}
 	}
 	return dst
-}
-
-func splitLast(b []byte, n int) ([]byte, []byte) {
-	return b[:len(b)-n], b[len(b)-n:]
 }
